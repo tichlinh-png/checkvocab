@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VocabSheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Lexend',sans-serif;min-height:100vh;background:linear-gradient(135deg,#e8f0fe 0%,#f0f4ff 50%,#dce8fb 100%);color:#1a2744}
+header{background:linear-gradient(90deg,#1a3a8f 0%,#2563eb 100%);color:#fff;padding:15px 28px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 20px rgba(37,99,235,.25)}
+.logo{font-size:22px;font-weight:800;letter-spacing:-.5px}
+.subtitle{font-size:11px;opacity:.75;font-weight:300;margin-top:1px}
+main{max-width:880px;margin:0 auto;padding:24px 14px}
+.card{background:#fff;border-radius:14px;box-shadow:0 4px 24px rgba(37,99,235,.09);padding:24px;margin-bottom:16px}
+.section-title{font-size:15px;font-weight:700;margin-bottom:13px;color:#1e3a8a}
+input[type=text],textarea,select{width:100%;border:1.5px solid #c7d6f7;border-radius:8px;padding:8px 12px;font-family:'Lexend',sans-serif;font-size:13px;outline:none;background:#f7f9ff;transition:border .15s}
+input[type=text]:focus,textarea:focus,select:focus{border-color:#2563eb}
+textarea{resize:vertical}
+.btn{border:none;border-radius:8px;padding:8px 16px;font-family:'Lexend',sans-serif;font-size:13px;cursor:pointer;font-weight:600;transition:opacity .15s;color:#fff;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{opacity:.87}.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-blue{background:#2563eb}.btn-green{background:#16a34a}.btn-red{background:#ef4444}.btn-amber{background:#d97706}
+.btn-outline{background:transparent;color:#2563eb;border:2px solid #2563eb;border-radius:8px;padding:6px 14px;font-family:'Lexend',sans-serif;font-size:13px;cursor:pointer;font-weight:600}
+.btn-outline:hover{background:#eff6ff}
+.flex{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.lbl{font-size:11px;color:#64748b;margin-bottom:4px;font-weight:500}
+.tag{display:inline-flex;align-items:center;gap:5px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:3px 9px;margin:3px;font-size:13px;color:#1e3a8a}
+.tag .del{cursor:pointer;color:#ef4444;font-weight:700;font-size:15px;line-height:1;margin-left:1px}
+.tag .meaning-badge{background:#dbeafe;border-radius:4px;padding:1px 6px;font-size:11px;color:#1e40af}
+.set-card{background:#fff;border-radius:12px;border:1.5px solid #dbeafe;padding:15px 18px;margin-bottom:11px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 2px 10px rgba(37,99,235,.06)}
+.set-info{flex:1;min-width:0}
+.set-name{font-weight:700;font-size:15px;color:#1e3a8a;margin-bottom:3px}
+.set-meta{font-size:11px;color:#64748b;margin-bottom:7px}
+.chips{display:flex;flex-wrap:wrap}
+.chip{background:#eff6ff;border:1px solid #bfdbfe;border-radius:4px;padding:1px 7px;margin:2px;font-size:11px;color:#1e3a8a}
+.err{background:#fef2f2;color:#b91c1c;border-radius:8px;padding:7px 12px;margin-top:7px;font-size:12px}
+.info-box{background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 13px;font-size:12px;color:#1e40af;margin-top:8px}
+.divider{border-top:1.5px solid #dbeafe;padding-top:14px;margin-top:14px}
+.empty-state{text-align:center;padding:50px 20px}
+.view{display:none}.view.active{display:block}
+
+/* Editable word table */
+.wtable{width:100%;border-collapse:collapse;font-size:13px}
+.wtable thead tr{background:#f0f4ff}
+.wtable th{padding:8px 10px;text-align:left;font-weight:700;color:#1e3a8a;border-bottom:2px solid #dbeafe;font-size:12px}
+.wtable tbody tr:hover{background:#f7f9ff}
+.wnum{text-align:center;color:#94a3b8;font-size:12px;padding:6px 4px;width:36px;font-weight:500}
+.wcell{padding:5px 6px}
+.wactions{padding:5px 6px;white-space:nowrap}
+.winput{width:100%;border:1.5px solid #e2e8f0;border-radius:6px;padding:7px 10px;font-family:'Lexend',sans-serif;font-size:13px;outline:none;background:#fff;transition:border .15s}
+.winput:focus{border-color:#2563eb;background:#f7f9ff}
+.meaning-in{color:#1e40af}
+.wbtn{border:none;border-radius:5px;padding:5px 7px;cursor:pointer;font-size:12px;font-weight:700;transition:opacity .15s}
+.wbtn:disabled{opacity:.25;cursor:not-allowed}
+.wbtn-up,.wbtn-dn{background:#e0e7ff;color:#3730a3}
+.wbtn-del{background:#fee2e2;color:#b91c1c;margin-left:2px}
+.wbtn:not(:disabled):hover{opacity:.75}
+
+/* Mode toggle */
+.mode-toggle{display:flex;background:#f0f4ff;border-radius:10px;padding:4px;gap:4px;margin-bottom:16px}
+.mode-btn{flex:1;padding:8px 10px;border:none;border-radius:7px;font-family:'Lexend',sans-serif;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:#64748b;transition:all .2s}
+.mode-btn.active{background:#fff;color:#1e3a8a;box-shadow:0 2px 8px rgba(37,99,235,.15)}
+
+/* Loading overlay */
+#loading{position:fixed;inset:0;background:rgba(255,255,255,.85);display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;z-index:9999;backdrop-filter:blur(3px)}
+#loading.show{display:flex}
+.spinner{width:42px;height:42px;border:4px solid #dbeafe;border-top-color:#2563eb;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-txt{font-size:14px;color:#1e3a8a;font-weight:600}
+
+/* ═══ WORKSHEET PREVIEW (used by html2canvas) ═══ */
+#ws-render{
+  position:absolute;left:-9999px;top:0;
+  width:794px;
+  height:1123px; /* exact A4 at 96dpi */
+  background:#fff;
+  padding:36px 44px 32px 44px;
+  font-family:'Lexend',sans-serif;
+  color:#000;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+.ws-heading{text-align:center;border-bottom:3px solid #000;padding-bottom:12px;margin-bottom:16px;flex-shrink:0}
+.ws-label-sm{font-size:10px;letter-spacing:3.5px;text-transform:uppercase;color:#555;margin-bottom:6px;font-weight:400}
+.ws-title-text{font-size:26px;font-weight:800;color:#000;line-height:1.2}
+.ws-inforow{display:flex;gap:0;margin-bottom:14px;border-bottom:1px solid #aaa;padding-bottom:14px;flex-shrink:0}
+.ws-infoitem{flex:1;font-size:13px;font-weight:600;padding-right:14px}
+.ws-underline{display:block;border-bottom:1.5px solid #000;margin-top:18px;min-height:2px}
+.ws-directions{font-size:12px;font-style:italic;color:#444;margin-bottom:10px;font-weight:300;flex-shrink:0}
+.ws-tbl-wrap{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.ws-tbl{width:100%;border-collapse:collapse;font-size:14px;height:100%}
+.ws-tbl th{background:#ececec;border:2px solid #000;padding:10px 14px;text-align:left;font-size:13px;font-weight:700}
+.ws-tbl td{border:1.5px solid #bbb;padding:0}
+.ws-tbl td.num-cell{text-align:center;color:#666;font-size:12px;font-weight:500;width:38px;padding:0 6px;border:1.5px solid #bbb;vertical-align:middle}
+.ws-tbl td.word-cell{font-weight:700;font-size:15px;padding:0 14px;width:42%;border:1.5px solid #bbb;vertical-align:middle}
+.ws-tbl td.blank-cell{padding:0;border:1.5px solid #bbb}
+.ws-tbl tr:nth-child(even) td{background:#f5f5f5}
+.ws-footer-row{flex-shrink:0;margin-top:10px;border-top:1px solid #ccc;padding-top:8px;display:flex;justify-content:space-between;font-size:11px;color:#666;font-weight:400}
+
+/* ═══ UI PREVIEW ═══ */
+.preview-box{background:#fff;border-radius:14px;box-shadow:0 4px 24px rgba(37,99,235,.09);padding:28px 32px}
+.preview-note{font-size:9px;color:#94a3b8;text-align:center;margin-bottom:14px;letter-spacing:1.5px;text-transform:uppercase;font-weight:500}
+.ui-ws-heading{text-align:center;border-bottom:3px solid #000;padding-bottom:10px;margin-bottom:16px}
+.ui-ws-label{font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:#666;margin-bottom:4px;font-weight:400}
+.ui-ws-title{font-size:20px;font-weight:800}
+.ui-inforow{display:flex;gap:20px;border-bottom:1px solid #bbb;padding-bottom:13px;margin-bottom:15px;font-size:13px}
+.ui-inforow div{flex:1}
+.ui-uline{border-bottom:1.5px solid #000;display:inline-block;min-width:80px}
+.ui-dirs{font-size:12px;font-style:italic;color:#444;margin-bottom:12px;font-weight:300}
+.ui-tbl{width:100%;border-collapse:collapse;font-size:14px}
+.ui-tbl th{background:#ececec;border:2px solid #000;padding:9px 12px;text-align:left;font-size:12px;font-weight:700}
+.ui-tbl td{border:1.5px solid #bbb;padding:0}
+.ui-tbl td.ui-num{text-align:center;color:#777;font-size:12px;width:36px;padding:14px 4px}
+.ui-tbl td.ui-word{font-weight:700;font-size:14px;padding:14px 12px;width:42%}
+.ui-tbl td.ui-blank{padding:14px 12px;min-height:44px}
+.ui-tbl tr:nth-child(even) td{background:#f7f7f7}
+.ui-footer{margin-top:14px;border-top:1px solid #ccc;padding-top:8px;display:flex;justify-content:space-between;font-size:11px;color:#777}
+</style>
+</head>
+<body>
+
+<div id="loading"><div class="spinner"></div><div class="loading-txt">Đang tạo PDF…</div></div>
+
+<!-- Hidden render target for html2canvas -->
+<div id="ws-render"></div>
+
+<!-- ═══ HOME ═══ -->
+<div id="view-home" class="view active">
+  <header>
+    <div><div class="logo">📋 VocabSheet</div><div class="subtitle">Tạo worksheet từ vựng tiếng Anh</div></div>
+    <button class="btn btn-green" onclick="goCreate()">＋ Tạo bộ từ mới</button>
+  </header>
+  <main><div id="home-content"></div></main>
+</div>
+
+<!-- ═══ FORM (create/edit) ═══ -->
+<div id="view-form" class="view">
+  <header>
+    <div><div class="logo">📋 VocabSheet</div><div class="subtitle" id="form-subtitle">Tạo bộ từ mới</div></div>
+  </header>
+  <main>
+    <div class="card">
+      <div class="section-title">📝 Tên bộ từ</div>
+      <input type="text" id="input-name" placeholder="Ví dụ: Unit 14 – Daily Activities">
+    </div>
+    <div class="card">
+      <div class="section-title">📥 Nhập từ vựng</div>
+      <div class="info-box" style="margin-bottom:12px">
+        💡 Nhập <strong>chỉ từ tiếng Anh</strong> nếu chỉ dùng chế độ Từ→Nghĩa.<br>
+        Nhập <strong>từ - nghĩa</strong> (cách nhau bằng dấu <code>-</code> hoặc <code>:</code>) để dùng được cả 2 chế độ.<br>
+        <span style="font-size:11px;opacity:.8">Ví dụ: <code>noon - buổi trưa</code> &nbsp;|&nbsp; <code>morning</code></span>
+      </div>
+      <textarea id="input-words" rows="7" placeholder="noon - buổi trưa&#10;afternoon - buổi chiều&#10;evening - buổi tối&#10;morning - buổi sáng&#10;clean&#10;floor&#10;help"></textarea>
+      <div id="form-error" class="err" style="display:none"></div>
+      <div class="flex" style="margin-top:11px">
+        <button class="btn btn-blue" onclick="addWords()">➕ Thêm từ</button>
+        <button class="btn btn-red" onclick="clearWords()">🗑 Xóa hết</button>
+      </div>
+    </div>
+    <div class="card" id="word-list-card" style="display:none">
+      <div class="section-title" id="word-count-title">📚 Danh sách từ</div>
+      <div id="word-tags"></div>
+      <div class="divider flex" style="justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div class="flex">
+          <button class="btn btn-green" id="save-btn" onclick="saveSet()">💾 Lưu bộ từ</button>
+          <button class="btn-outline" onclick="goHome()">← Hủy</button>
+        </div>
+        <button class="btn" style="background:#7c3aed" onclick="copyAllWords()" id="copy-btn">📋 Copy tất cả từ</button>
+      </div>
+      <div id="copy-area-wrap" style="display:none;margin-top:12px">
+        <div class="lbl" style="margin-bottom:6px">📄 Toàn bộ từ vựng (có thể chọn &amp; copy)</div>
+        <textarea id="copy-area" rows="8" readonly
+          style="background:#f8faff;border:1.5px solid #c7d6f7;border-radius:8px;padding:10px 12px;font-family:'Lexend',sans-serif;font-size:13px;width:100%;resize:vertical;color:#1e3a8a;cursor:text"
+          onclick="this.select()"></textarea>
+        <div style="font-size:11px;color:#64748b;margin-top:4px">💡 Click vào ô trên để chọn tất cả, rồi Ctrl+C để copy</div>
+      </div>
+    </div>
+    <div id="form-back" style="text-align:right;display:none;margin-top:4px">
+      <button class="btn-outline" onclick="goHome()">← Quay lại</button>
+    </div>
+  </main>
+</div>
+
+<!-- ═══ PRINT ═══ -->
+<div id="view-print" class="view">
+  <header>
+    <div><div class="logo">📋 VocabSheet</div><div class="subtitle">Xuất worksheet PDF</div></div>
+  </header>
+  <main>
+    <div class="card">
+      <div class="section-title">⚙️ Tùy chỉnh</div>
+
+      <!-- Worksheet mode -->
+      <div class="lbl" style="margin-bottom:6px">Loại worksheet</div>
+      <div class="mode-toggle">
+        <button class="mode-btn active" id="mode-btn-wm" onclick="setMode('wm')">🔤 Từ tiếng Anh → Học sinh điền nghĩa</button>
+        <button class="mode-btn" id="mode-btn-mw" onclick="setMode('mw')">📖 Nghĩa tiếng Việt → Học sinh điền từ tiếng Anh</button>
+      </div>
+      <div id="mode-warning" class="err" style="display:none;background:#fffbeb;color:#92400e;border:none"></div>
+
+      <!-- Shuffle option -->
+      <div style="margin-top:10px;display:flex;align-items:center;gap:10px;background:#f8f7ff;border:1.5px solid #ddd6fe;border-radius:10px;padding:10px 14px">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;color:#5b21b6;user-select:none">
+          <input type="checkbox" id="shuffle-toggle" onchange="shuffleChanged()" style="width:16px;height:16px;cursor:pointer;accent-color:#7c3aed">
+          🔀 Trộn thứ tự từ ngẫu nhiên
+        </label>
+        <button class="btn" style="background:#7c3aed;padding:6px 12px;font-size:12px" id="reshuffle-btn" onclick="reshuffleWords()" title="Trộn lại">↺ Trộn lại</button>
+      </div>
+
+      <div class="grid2" style="margin-top:10px">
+        <div><div class="lbl">Tiêu đề worksheet</div><input type="text" id="pi-title" oninput="updatePreview()"></div>
+        <div><div class="lbl">Lớp</div><input type="text" id="pi-class" placeholder="Ví dụ: 4A" oninput="updatePreview()"></div>
+        <div><div class="lbl">Ngày</div><input type="text" id="pi-date" placeholder="Ví dụ: 06/03/2026" oninput="updatePreview()"></div>
+      </div>
+
+      <div class="divider flex">
+        <button class="btn btn-green" onclick="downloadPDF()" id="dl-btn">⬇️ Tải PDF</button>
+        <button class="btn-outline" onclick="goHome()">← Quay lại</button>
+      </div>
+    </div>
+
+    <!-- UI Preview -->
+    <div class="preview-box">
+      <div class="preview-note">— Xem trước —</div>
+      <div class="ui-ws-heading">
+        <div class="ui-ws-label">English Vocabulary Worksheet</div>
+        <div class="ui-ws-title" id="prev-title">—</div>
+      </div>
+      <div class="ui-inforow">
+        <div><strong>Name:</strong> <span class="ui-uline">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
+        <div><strong>Class:</strong> <span class="ui-uline" id="prev-class">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
+        <div><strong>Date:</strong> <span class="ui-uline" id="prev-date">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
+      </div>
+      <div class="ui-dirs" id="prev-dirs">Directions: Write the Vietnamese meaning of each vocabulary word in the blank column.</div>
+      <table class="ui-tbl">
+        <thead><tr id="prev-thead"></tr></thead>
+        <tbody id="prev-tbody"></tbody>
+      </table>
+      <div class="ui-footer">
+        <span id="prev-total">Total: 0 words</span>
+        <span id="prev-score">Score: _______ / 0</span>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const STORAGE_KEY = "vocabsheet-v2";
+let sets = [];
+let editId = null;
+let currentWords = []; // [{word, meaning}]
+let activeSet = null;
+let wsMode = "wm"; // wm = word→meaning, mw = meaning→word
+let shuffledWords = null; // null = use original order
+
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function shuffleChanged() {
+  const on = document.getElementById("shuffle-toggle").checked;
+  shuffledWords = on ? shuffleArray(activeSet.words) : null;
+  document.getElementById("reshuffle-btn").style.opacity = on ? "1" : "0.35";
+  document.getElementById("reshuffle-btn").disabled = !on;
+  updatePreview();
+}
+
+function reshuffleWords() {
+  if (!activeSet) return;
+  shuffledWords = shuffleArray(activeSet.words);
+  updatePreview();
+}
+
+function getDisplayWords() {
+  return shuffledWords || (activeSet ? activeSet.words : []);
+}
+
+try { sets = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); } catch {}
+
+function persist() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(sets)); } catch {} }
+function fmtDate(iso) { return new Date(iso).toLocaleDateString("vi-VN",{day:"2-digit",month:"2-digit",year:"numeric"}); }
+function showView(id) { document.querySelectorAll(".view").forEach(v=>v.classList.remove("active")); document.getElementById(id).classList.add("active"); window.scrollTo(0,0); }
+function showErr(msg) { const e=document.getElementById("form-error"); e.textContent=msg; e.style.display=msg?"block":"none"; }
+
+// ─── Parse input line → {word, meaning} ───
+function parseLine(line) {
+  const sep = line.match(/[-:–]\s*/);
+  if (!sep) return { word: line.trim(), meaning: "" };
+  const idx = line.indexOf(sep[0]);
+  return { word: line.slice(0, idx).trim(), meaning: line.slice(idx + sep[0].length).trim() };
+}
+
+function addWords() {
+  const raw = document.getElementById("input-words").value;
+  if (!raw.trim()) return;
+  const lines = raw.split(/\n/).map(l => l.trim()).filter(l => l.length > 0);
+  // also handle comma-separated if no newlines
+  const entries = lines.length === 1 && !raw.includes("\n")
+    ? raw.split(",").map(l => l.trim()).filter(Boolean)
+    : lines;
+
+  const existingWords = new Set(currentWords.map(w => w.word.toLowerCase()));
+  const dupes = [], added = [];
+  entries.forEach(line => {
+    const parsed = parseLine(line);
+    if (!parsed.word) return;
+    if (existingWords.has(parsed.word.toLowerCase())) { dupes.push(parsed.word); return; }
+    existingWords.add(parsed.word.toLowerCase());
+    currentWords.push(parsed);
+    added.push(parsed.word);
+  });
+  document.getElementById("input-words").value = "";
+  showErr(dupes.length ? `Từ trùng lặp (đã bỏ qua): ${dupes.join(", ")}` : "");
+  renderWordTags();
+}
+
+function clearWords() { currentWords = []; renderWordTags(); }
+
+function removeWord(i) { currentWords.splice(i, 1); renderWordTags(); }
+
+function moveWord(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= currentWords.length) return;
+  [currentWords[i], currentWords[j]] = [currentWords[j], currentWords[i]];
+  renderWordTags();
+}
+
+function syncWord(i, field, val) {
+  if (currentWords[i]) currentWords[i][field] = val.trim();
+}
+
+function renderWordTags() {
+  const card = document.getElementById("word-list-card");
+  const backBtn = document.getElementById("form-back");
+  document.getElementById("word-count-title").textContent = `📚 Danh sách từ (${currentWords.length} từ)`;
+  if (currentWords.length === 0) { card.style.display = "none"; backBtn.style.display = "block"; return; }
+  card.style.display = "block"; backBtn.style.display = "none";
+
+  const rows = currentWords.map((w, i) => `
+    <tr class="wrow" id="wrow-${i}">
+      <td class="wnum">${i+1}</td>
+      <td class="wcell">
+        <input class="winput" type="text" value="${escHtml(w.word)}"
+          onchange="syncWord(${i},'word',this.value)"
+          placeholder="Từ tiếng Anh">
+      </td>
+      <td class="wcell">
+        <input class="winput meaning-in" type="text" value="${escHtml(w.meaning||'')}"
+          onchange="syncWord(${i},'meaning',this.value)"
+          placeholder="Nghĩa (tùy chọn)">
+      </td>
+      <td class="wactions">
+        <button class="wbtn wbtn-up" onclick="moveWord(${i},-1)" title="Lên" ${i===0?"disabled":""}>↑</button>
+        <button class="wbtn wbtn-dn" onclick="moveWord(${i},1)" title="Xuống" ${i===currentWords.length-1?"disabled":""}>↓</button>
+        <button class="wbtn wbtn-del" onclick="removeWord(${i})" title="Xóa">✕</button>
+      </td>
+    </tr>`).join("");
+
+  document.getElementById("word-tags").innerHTML = `
+    <table class="wtable">
+      <thead>
+        <tr>
+          <th style="width:36px">#</th>
+          <th>Từ tiếng Anh</th>
+          <th>Nghĩa tiếng Việt</th>
+          <th style="width:90px">Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function copyAllWords() {
+  // Sync inputs first
+  document.querySelectorAll(".wrow").forEach((row, i) => {
+    const inputs = row.querySelectorAll(".winput");
+    if (currentWords[i]) {
+      if (inputs[0]) currentWords[i].word = inputs[0].value.trim();
+      if (inputs[1]) currentWords[i].meaning = inputs[1].value.trim();
+    }
+  });
+
+  const text = currentWords
+    .filter(w => w.word)
+    .map(w => w.meaning ? `${w.word} - ${w.meaning}` : w.word)
+    .join("\n");
+
+  const wrap = document.getElementById("copy-area-wrap");
+  const area = document.getElementById("copy-area");
+  const btn  = document.getElementById("copy-btn");
+
+  area.value = text;
+  wrap.style.display = "block";
+  area.select();
+
+  // Try clipboard API
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = "✅ Đã copy!";
+      setTimeout(() => { btn.textContent = "📋 Copy tất cả từ"; }, 2000);
+    }).catch(() => {});
+  } else {
+    try { document.execCommand("copy"); btn.textContent = "✅ Đã copy!"; setTimeout(() => { btn.textContent = "📋 Copy tất cả từ"; }, 2000); } catch {}
+  }
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+// ─── NAV ───
+function goHome() { editId=null; currentWords=[]; renderHome(); showView("view-home"); }
+
+function goCreate() {
+  editId=null; currentWords=[];
+  document.getElementById("input-name").value = "";
+  document.getElementById("input-words").value = "";
+  document.getElementById("form-subtitle").textContent = "Tạo bộ từ mới";
+  document.getElementById("save-btn").textContent = "💾 Lưu bộ từ";
+  showErr(""); renderWordTags(); showView("view-form");
+}
+
+function goEdit(id) {
+  const s = sets.find(x => x.id === id); if (!s) return;
+  editId = id;
+  currentWords = s.words.map(w => typeof w === "string" ? {word:w, meaning:""} : {...w});
+  document.getElementById("input-name").value = s.name;
+  document.getElementById("input-words").value = "";
+  document.getElementById("form-subtitle").textContent = `Chỉnh sửa: ${s.name}`;
+  document.getElementById("save-btn").textContent = "💾 Lưu thay đổi";
+  showErr(""); renderWordTags(); showView("view-form");
+}
+
+function goPrint(id) {
+  activeSet = sets.find(s => s.id === id); if (!activeSet) return;
+  activeSet = {...activeSet, words: activeSet.words.map(w => typeof w==="string"?{word:w,meaning:""}:{...w})};
+  wsMode = "wm";
+  shuffledWords = null;
+  setMode("wm");
+  document.getElementById("pi-title").value = activeSet.name;
+  document.getElementById("pi-class").value = "";
+  document.getElementById("pi-date").value = "";
+  document.getElementById("shuffle-toggle").checked = false;
+  document.getElementById("reshuffle-btn").style.opacity = "0.35";
+  document.getElementById("reshuffle-btn").disabled = true;
+  updatePreview();
+  showView("view-print");
+}
+
+function setMode(m) {
+  wsMode = m;
+  document.getElementById("mode-btn-wm").classList.toggle("active", m === "wm");
+  document.getElementById("mode-btn-mw").classList.toggle("active", m === "mw");
+  // warn if no meanings
+  const warn = document.getElementById("mode-warning");
+  if (m === "mw" && activeSet) {
+    const hasMeaning = activeSet.words.some(w => w.meaning && w.meaning.trim());
+    warn.style.display = hasMeaning ? "none" : "block";
+    warn.textContent = "⚠️ Bộ từ này chưa có nghĩa tiếng Việt. Hãy sửa bộ từ và thêm nghĩa theo định dạng: từ - nghĩa";
+  } else { warn.style.display = "none"; }
+  updatePreview();
+}
+
+// ─── SAVE ───
+function saveSet() {
+  // Sync any unsaved input values before saving
+  document.querySelectorAll(".wrow").forEach((row, i) => {
+    const inputs = row.querySelectorAll(".winput");
+    if (inputs[0]) currentWords[i].word = inputs[0].value.trim();
+    if (inputs[1]) currentWords[i].meaning = inputs[1].value.trim();
+  });
+  // Filter out empty words
+  currentWords = currentWords.filter(w => w.word.length > 0);
+
+  const name = document.getElementById("input-name").value.trim();
+  if (!name) { showErr("Vui lòng đặt tên bộ từ!"); return; }
+  if (currentWords.length === 0) { showErr("Chưa có từ vựng nào!"); return; }
+  if (editId) {
+    sets = sets.map(s => s.id === editId ? {...s, name, words:[...currentWords]} : s);
+  } else {
+    sets.unshift({id: Date.now().toString(), name, words:[...currentWords], createdAt: new Date().toISOString()});
+  }
+  persist(); goHome();
+}
+
+function deleteSet(id) {
+  const s = sets.find(x => x.id === id); if (!s) return;
+  if (!confirm(`Xóa bộ từ "${s.name}"?`)) return;
+  sets = sets.filter(x => x.id !== id); persist(); renderHome();
+}
+
+// ─── HOME RENDER ───
+function renderHome() {
+  const el = document.getElementById("home-content");
+  if (sets.length === 0) {
+    el.innerHTML = `<div class="card empty-state">
+      <div style="font-size:48px;margin-bottom:12px">📚</div>
+      <div style="font-size:19px;font-weight:700;color:#1e3a8a;margin-bottom:7px">Chưa có bộ từ nào</div>
+      <div style="color:#64748b;margin-bottom:20px;font-size:13px">Bắt đầu bằng cách tạo bộ từ đầu tiên!</div>
+      <button class="btn btn-blue" onclick="goCreate()">＋ Tạo bộ từ đầu tiên</button></div>`; return;
+  }
+  el.innerHTML = `<div style="font-size:17px;font-weight:700;color:#1e3a8a;margin-bottom:14px">📂 Bộ từ đã lưu (${sets.length})</div>` +
+    sets.map(s => {
+      const words = s.words.map(w => typeof w==="string"?w:w.word);
+      const chips = words.slice(0,6).map(w=>`<span class="chip">${w}</span>`).join("");
+      const more = words.length>6?`<span style="font-size:11px;color:#94a3b8;padding:2px 5px">+${words.length-6}</span>`:"";
+      const hasMeaning = s.words.some(w => typeof w==="object" && w.meaning);
+      return `<div class="set-card">
+        <div class="set-info">
+          <div class="set-name">${s.name}</div>
+          <div class="set-meta">📅 ${fmtDate(s.createdAt)} &nbsp;·&nbsp; 📝 ${s.words.length} từ ${hasMeaning?'&nbsp;·&nbsp; <span style="color:#16a34a;font-size:11px">✓ có nghĩa TV</span>':''}</div>
+          <div class="chips">${chips}${more}</div>
+        </div>
+        <div class="flex" style="flex-shrink:0;margin-left:12px">
+          <button class="btn btn-blue" onclick="goPrint('${s.id}')">📄 Xuất PDF</button>
+          <button class="btn btn-amber" onclick="goEdit('${s.id}')">✏️ Sửa</button>
+          <button class="btn btn-red" onclick="deleteSet('${s.id}')">🗑</button>
+        </div>
+      </div>`;
+    }).join("");
+}
+
+// ─── PREVIEW ───
+function updatePreview() {
+  if (!activeSet) return;
+  const title = document.getElementById("pi-title").value || activeSet.name;
+  const cls   = document.getElementById("pi-class").value;
+  const date  = document.getElementById("pi-date").value;
+  document.getElementById("prev-title").textContent = title;
+  document.getElementById("prev-class").innerHTML = cls || "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+  document.getElementById("prev-date").innerHTML  = date || "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+
+  const isWM = wsMode === "wm";
+  document.getElementById("prev-dirs").textContent = isWM
+    ? "Directions: Write the Vietnamese meaning of each vocabulary word in the blank column."
+    : "Directions: Write the English vocabulary word for each Vietnamese meaning in the blank column.";
+
+  document.getElementById("prev-thead").innerHTML = isWM
+    ? `<th style="width:36px;text-align:center">#</th><th style="width:42%">Vocabulary Word</th><th>Meaning / Nghĩa</th>`
+    : `<th style="width:36px;text-align:center">#</th><th style="width:42%">Meaning / Nghĩa</th><th>Vocabulary Word</th>`;
+
+  const displayWords = getDisplayWords();
+  document.getElementById("prev-tbody").innerHTML = displayWords.map((w, i) => {
+    const word = typeof w==="string"?w:w.word;
+    const meaning = typeof w==="object"?w.meaning:"";
+    return isWM
+      ? `<tr><td class="ui-num">${i+1}</td><td class="ui-word">${word}</td><td class="ui-blank"></td></tr>`
+      : `<tr><td class="ui-num">${i+1}</td><td class="ui-word" style="font-weight:400">${meaning||'—'}</td><td class="ui-blank"></td></tr>`;
+  }).join("");
+
+  document.getElementById("prev-total").textContent = `Total: ${activeSet.words.length} words`;
+  document.getElementById("prev-score").textContent = `Score: _______ / ${activeSet.words.length}`;
+}
+
+// ─── BUILD RENDER HTML ───
+function buildRenderContent() {
+  const title = document.getElementById("pi-title").value || activeSet.name;
+  const cls   = document.getElementById("pi-class").value || "";
+  const date  = document.getElementById("pi-date").value || "";
+  const isWM  = wsMode === "wm";
+  const displayWords = getDisplayWords();
+  const n     = displayWords.length;
+
+  const rowPct = (100 / n).toFixed(4) + "%";
+
+  const headRow = isWM
+    ? `<th style="width:38px;text-align:center">#</th><th style="width:42%">Vocabulary Word</th><th>Meaning / Nghĩa</th>`
+    : `<th style="width:38px;text-align:center">#</th><th style="width:42%">Meaning / Nghĩa</th><th>Vocabulary Word</th>`;
+
+  const rows = displayWords.map((w, i) => {
+    const word = typeof w==="string"?w:w.word;
+    const meaning = typeof w==="object"?w.meaning:"";
+    const bg = i%2===0?"#fff":"#f5f5f5";
+    return isWM
+      ? `<tr style="background:${bg};height:${rowPct}">
+          <td class="num-cell" style="background:${bg}">${i+1}</td>
+          <td class="word-cell" style="background:${bg}">${word}</td>
+          <td class="blank-cell" style="background:${bg}"></td>
+        </tr>`
+      : `<tr style="background:${bg};height:${rowPct}">
+          <td class="num-cell" style="background:${bg}">${i+1}</td>
+          <td class="word-cell" style="font-weight:400;background:${bg}">${meaning||"—"}</td>
+          <td class="blank-cell" style="background:${bg}"></td>
+        </tr>`;
+  }).join("");
+
+  const dirs = isWM
+    ? "Directions: Write the Vietnamese meaning of each vocabulary word in the blank column."
+    : "Directions: Write the English vocabulary word for each Vietnamese meaning in the blank column.";
+
+  return `
+    <div class="ws-heading">
+      <div class="ws-label-sm">English Vocabulary Worksheet</div>
+      <div class="ws-title-text">${title}</div>
+    </div>
+    <div class="ws-inforow">
+      <div class="ws-infoitem">Name: <span class="ws-underline"></span></div>
+      <div class="ws-infoitem">Class: <span class="ws-underline">${cls}</span></div>
+      <div class="ws-infoitem">Date: <span class="ws-underline">${date}</span></div>
+    </div>
+    <div class="ws-directions">${dirs}</div>
+    <div class="ws-tbl-wrap">
+      <table class="ws-tbl">
+        <thead><tr>${headRow}</tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <div class="ws-footer-row">
+      <span>Total: ${activeSet.words.length} words</span>
+      <span>Score: _______ / ${activeSet.words.length}</span>
+    </div>`;
+}
+
+// ─── DOWNLOAD PDF via html2canvas ───
+async function downloadPDF() {
+  if (!activeSet) return;
+  const warn = document.getElementById("mode-warning");
+  if (warn.style.display === "block") { alert("Bộ từ chưa có nghĩa tiếng Việt!"); return; }
+
+  const loading = document.getElementById("loading");
+  loading.classList.add("show");
+
+  try {
+    // Populate hidden render div
+    const renderDiv = document.getElementById("ws-render");
+    renderDiv.innerHTML = buildRenderContent();
+
+    // Wait for fonts to load
+    await document.fonts.ready;
+    await new Promise(r => setTimeout(r, 300));
+
+    const canvas = await html2canvas(renderDiv, {
+      scale: 2.5,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+      logging: false,
+      width: 794,
+      height: 1123,
+      windowWidth: 794,
+      windowHeight: 1123,
+    });
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    const imgData = canvas.toDataURL("image/png", 1.0);
+    pdf.addImage(imgData, "PNG", 0, 0, 210, 297);
+
+    const filename = (document.getElementById("pi-title").value || activeSet.name)
+      .replace(/[<>:"/\\|?*]/g, "").trim().replace(/\s+/g, "_") || "worksheet";
+    pdf.save(`${filename}.pdf`);
+  } catch(e) {
+    alert("Lỗi tạo PDF: " + e.message);
+    console.error(e);
+  } finally {
+    loading.classList.remove("show");
+  }
+}
+
+renderHome();
+</script>
+</body>
+</html>
