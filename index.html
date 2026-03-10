@@ -151,11 +151,11 @@ textarea{resize:vertical}
     <div class="card">
       <div class="section-title">📥 Nhập từ vựng</div>
       <div class="info-box" style="margin-bottom:12px">
-        💡 Nhập <strong>chỉ từ tiếng Anh</strong> nếu chỉ dùng chế độ Từ→Nghĩa.<br>
-        Nhập <strong>từ - nghĩa</strong> (cách nhau bằng dấu <code>-</code> hoặc <code>:</code>) để dùng được cả 2 chế độ.<br>
-        <span style="font-size:11px;opacity:.8">Ví dụ: <code>noon - buổi trưa</code> &nbsp;|&nbsp; <code>morning</code></span>
+        💡 <strong>Cột A</strong> = nội dung hiện cho học sinh thấy (tiếng Anh hoặc tiếng Việt đều được).<br>
+        <strong>Cột B</strong> = bản dịch / nghĩa (tùy chọn — dùng khi muốn xuất cả 2 chiều).<br>
+        <span style="font-size:11px;opacity:.8">Cách nhập: <code>noon - buổi trưa</code> &nbsp;|&nbsp; <code>Bạn lau sàn khi nào?</code> &nbsp;|&nbsp; <code>clean - sạch sẽ</code></span>
       </div>
-      <textarea id="input-words" rows="7" placeholder="noon - buổi trưa&#10;afternoon - buổi chiều&#10;evening - buổi tối&#10;morning - buổi sáng&#10;clean&#10;floor&#10;help"></textarea>
+      <textarea id="input-words" rows="7" placeholder="Ví dụ nhập tiếng Anh:&#10;noon - buổi trưa&#10;morning - buổi sáng&#10;&#10;Hoặc nhập tiếng Việt:&#10;Bạn lau sàn khi nào?&#10;Mẹ bạn làm gì vào buổi tối?"></textarea>
       <div id="form-error" class="err" style="display:none"></div>
       <div class="flex" style="margin-top:11px">
         <button class="btn btn-blue" onclick="addWords()">➕ Thêm từ</button>
@@ -198,8 +198,8 @@ textarea{resize:vertical}
       <!-- Worksheet mode -->
       <div class="lbl" style="margin-bottom:6px">Loại worksheet</div>
       <div class="mode-toggle">
-        <button class="mode-btn active" id="mode-btn-wm" onclick="setMode('wm')">🔤 Từ tiếng Anh → Học sinh điền nghĩa</button>
-        <button class="mode-btn" id="mode-btn-mw" onclick="setMode('mw')">📖 Nghĩa tiếng Việt → Học sinh điền từ tiếng Anh</button>
+        <button class="mode-btn active" id="mode-btn-wm" onclick="setMode('wm')">🔤 Từ tiếng Anh → Học sinh điền nghĩa tiếng Việt</button>
+        <button class="mode-btn" id="mode-btn-mw" onclick="setMode('mw')">📖 Nghĩa tiếng Việt → Học sinh viết từ / câu tiếng Anh</button>
       </div>
       <div id="mode-warning" class="err" style="display:none;background:#fffbeb;color:#92400e;border:none"></div>
 
@@ -216,6 +216,21 @@ textarea{resize:vertical}
         <div><div class="lbl">Tiêu đề worksheet</div><input type="text" id="pi-title" oninput="updatePreview()"></div>
         <div><div class="lbl">Lớp</div><input type="text" id="pi-class" placeholder="Ví dụ: 4A" oninput="updatePreview()"></div>
         <div><div class="lbl">Ngày</div><input type="text" id="pi-date" placeholder="Ví dụ: 06/03/2026" oninput="updatePreview()"></div>
+      </div>
+
+      <!-- Custom column labels -->
+      <div style="margin-top:12px;background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:12px 14px">
+        <div style="font-size:12px;font-weight:700;color:#166534;margin-bottom:8px">🏷️ Tên cột trong worksheet</div>
+        <div class="grid2">
+          <div>
+            <div class="lbl">Cột A — nội dung cho sẵn</div>
+            <input type="text" id="pi-col-a" placeholder="Ví dụ: Câu tiếng Việt / Vocabulary Word" oninput="updatePreview()">
+          </div>
+          <div>
+            <div class="lbl">Cột B — học sinh điền</div>
+            <input type="text" id="pi-col-b" placeholder="Ví dụ: Câu tiếng Anh / Nghĩa tiếng Việt" oninput="updatePreview()">
+          </div>
+        </div>
       </div>
 
       <div class="divider flex">
@@ -352,12 +367,12 @@ function renderWordTags() {
       <td class="wcell">
         <input class="winput" type="text" value="${escHtml(w.word)}"
           onchange="syncWord(${i},'word',this.value)"
-          placeholder="Từ tiếng Anh">
+          placeholder="Cột A (cho sẵn)">
       </td>
       <td class="wcell">
         <input class="winput meaning-in" type="text" value="${escHtml(w.meaning||'')}"
           onchange="syncWord(${i},'meaning',this.value)"
-          placeholder="Nghĩa (tùy chọn)">
+          placeholder="Cột B — bản dịch (tùy chọn)">
       </td>
       <td class="wactions">
         <button class="wbtn wbtn-up" onclick="moveWord(${i},-1)" title="Lên" ${i===0?"disabled":""}>↑</button>
@@ -371,8 +386,8 @@ function renderWordTags() {
       <thead>
         <tr>
           <th style="width:36px">#</th>
-          <th>Từ tiếng Anh</th>
-          <th>Nghĩa tiếng Việt</th>
+          <th>Nội dung cho sẵn (Cột A)</th>
+          <th>Bản dịch / Nghĩa (Cột B — tùy chọn)</th>
           <th style="width:90px">Thao tác</th>
         </tr>
       </thead>
@@ -450,6 +465,8 @@ function goPrint(id) {
   document.getElementById("pi-title").value = activeSet.name;
   document.getElementById("pi-class").value = "";
   document.getElementById("pi-date").value = "";
+  document.getElementById("pi-col-a").value = "";
+  document.getElementById("pi-col-b").value = "";
   document.getElementById("shuffle-toggle").checked = false;
   document.getElementById("reshuffle-btn").style.opacity = "0.35";
   document.getElementById("reshuffle-btn").disabled = true;
@@ -461,13 +478,7 @@ function setMode(m) {
   wsMode = m;
   document.getElementById("mode-btn-wm").classList.toggle("active", m === "wm");
   document.getElementById("mode-btn-mw").classList.toggle("active", m === "mw");
-  // warn if no meanings
-  const warn = document.getElementById("mode-warning");
-  if (m === "mw" && activeSet) {
-    const hasMeaning = activeSet.words.some(w => w.meaning && w.meaning.trim());
-    warn.style.display = hasMeaning ? "none" : "block";
-    warn.textContent = "⚠️ Bộ từ này chưa có nghĩa tiếng Việt. Hãy sửa bộ từ và thêm nghĩa theo định dạng: từ - nghĩa";
-  } else { warn.style.display = "none"; }
+  document.getElementById("mode-warning").style.display = "none";
   updatePreview();
 }
 
@@ -543,11 +554,15 @@ function updatePreview() {
   const isWM = wsMode === "wm";
   document.getElementById("prev-dirs").textContent = isWM
     ? "Directions: Write the Vietnamese meaning of each vocabulary word in the blank column."
-    : "Directions: Write the English vocabulary word for each Vietnamese meaning in the blank column.";
+    : "Hướng dẫn: Nhìn vào nghĩa tiếng Việt, viết từ hoặc mẫu câu tiếng Anh tương ứng vào cột bên phải.";
 
-  document.getElementById("prev-thead").innerHTML = isWM
-    ? `<th style="width:36px;text-align:center">#</th><th style="width:42%">Vocabulary Word</th><th>Meaning / Nghĩa</th>`
-    : `<th style="width:36px;text-align:center">#</th><th style="width:42%">Meaning / Nghĩa</th><th>Vocabulary Word</th>`;
+  const colA = document.getElementById("pi-col-a").value.trim()
+    || (isWM ? "Vocabulary Word / Từ vựng" : "Nghĩa tiếng Việt");
+  const colB = document.getElementById("pi-col-b").value.trim()
+    || (isWM ? "Meaning / Nghĩa tiếng Việt" : "Từ / Mẫu câu tiếng Anh");
+
+  document.getElementById("prev-thead").innerHTML =
+    `<th style="width:36px;text-align:center">#</th><th style="width:42%">${colA}</th><th>${colB}</th>`;
 
   const displayWords = getDisplayWords();
   document.getElementById("prev-tbody").innerHTML = displayWords.map((w, i) => {
@@ -555,7 +570,7 @@ function updatePreview() {
     const meaning = typeof w==="object"?w.meaning:"";
     return isWM
       ? `<tr><td class="ui-num">${i+1}</td><td class="ui-word">${word}</td><td class="ui-blank"></td></tr>`
-      : `<tr><td class="ui-num">${i+1}</td><td class="ui-word" style="font-weight:400">${meaning||'—'}</td><td class="ui-blank"></td></tr>`;
+      : `<tr><td class="ui-num">${i+1}</td><td class="ui-word" style="font-weight:600">${meaning||'—'}</td><td class="ui-blank"></td></tr>`;
   }).join("");
 
   document.getElementById("prev-total").textContent = `Total: ${activeSet.words.length} words`;
@@ -573,9 +588,12 @@ function buildRenderContent() {
 
   const rowPct = (100 / n).toFixed(4) + "%";
 
-  const headRow = isWM
-    ? `<th style="width:38px;text-align:center">#</th><th style="width:42%">Vocabulary Word</th><th>Meaning / Nghĩa</th>`
-    : `<th style="width:38px;text-align:center">#</th><th style="width:42%">Meaning / Nghĩa</th><th>Vocabulary Word</th>`;
+  const colA = document.getElementById("pi-col-a").value.trim()
+    || (isWM ? "Vocabulary Word / Từ vựng" : "Nghĩa tiếng Việt");
+  const colB = document.getElementById("pi-col-b").value.trim()
+    || (isWM ? "Meaning / Nghĩa tiếng Việt" : "Từ / Mẫu câu tiếng Anh");
+
+  const headRow = `<th style="width:38px;text-align:center">#</th><th style="width:42%">${colA}</th><th>${colB}</th>`;
 
   const rows = displayWords.map((w, i) => {
     const word = typeof w==="string"?w:w.word;
@@ -589,14 +607,14 @@ function buildRenderContent() {
         </tr>`
       : `<tr style="background:${bg};height:${rowPct}">
           <td class="num-cell" style="background:${bg}">${i+1}</td>
-          <td class="word-cell" style="font-weight:400;background:${bg}">${meaning||"—"}</td>
+          <td class="word-cell" style="font-weight:600;font-size:15px;background:${bg}">${meaning||"—"}</td>
           <td class="blank-cell" style="background:${bg}"></td>
         </tr>`;
   }).join("");
 
   const dirs = isWM
     ? "Directions: Write the Vietnamese meaning of each vocabulary word in the blank column."
-    : "Directions: Write the English vocabulary word for each Vietnamese meaning in the blank column.";
+    : "Hướng dẫn: Nhìn vào nghĩa tiếng Việt, viết từ hoặc mẫu câu tiếng Anh tương ứng vào cột bên phải.";
 
   return `
     <div class="ws-heading">
@@ -624,9 +642,6 @@ function buildRenderContent() {
 // ─── DOWNLOAD PDF via html2canvas ───
 async function downloadPDF() {
   if (!activeSet) return;
-  const warn = document.getElementById("mode-warning");
-  if (warn.style.display === "block") { alert("Bộ từ chưa có nghĩa tiếng Việt!"); return; }
-
   const loading = document.getElementById("loading");
   loading.classList.add("show");
 
