@@ -552,9 +552,7 @@ function updatePreview() {
   document.getElementById("prev-date").innerHTML  = date || "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
 
   const isWM = wsMode === "wm";
-  document.getElementById("prev-dirs").textContent = isWM
-    ? "Directions: Write the Vietnamese meaning of each vocabulary word in the blank column."
-    : "Hướng dẫn: Nhìn vào nghĩa tiếng Việt, viết từ hoặc mẫu câu tiếng Anh tương ứng vào cột bên phải.";
+  document.getElementById("prev-dirs").style.display = "none";
 
   const colA = document.getElementById("pi-col-a").value.trim()
     || (isWM ? "Vocabulary Word / Từ vựng" : "Nghĩa tiếng Việt");
@@ -562,7 +560,7 @@ function updatePreview() {
     || (isWM ? "Meaning / Nghĩa tiếng Việt" : "Từ / Mẫu câu tiếng Anh");
 
   document.getElementById("prev-thead").innerHTML =
-    `<th style="width:36px;text-align:center">#</th><th style="width:42%">${colA}</th><th>${colB}</th>`;
+    `<th style="width:36px;text-align:center">STT</th><th style="width:42%">${colA}</th><th>${colB}</th>`;
 
   const displayWords = getDisplayWords();
   document.getElementById("prev-tbody").innerHTML = displayWords.map((w, i) => {
@@ -593,7 +591,7 @@ function buildRenderContent() {
   const colB = document.getElementById("pi-col-b").value.trim()
     || (isWM ? "Meaning / Nghĩa tiếng Việt" : "Từ / Mẫu câu tiếng Anh");
 
-  const headRow = `<th style="width:38px;text-align:center">#</th><th style="width:42%">${colA}</th><th>${colB}</th>`;
+  const headRow = `<th style="width:38px;text-align:center">STT</th><th style="width:42%">${colA}</th><th>${colB}</th>`;
 
   const rows = displayWords.map((w, i) => {
     const word = typeof w==="string"?w:w.word;
@@ -626,7 +624,6 @@ function buildRenderContent() {
       <div class="ws-infoitem">Class: <span class="ws-underline">${cls}</span></div>
       <div class="ws-infoitem">Date: <span class="ws-underline">${date}</span></div>
     </div>
-    <div class="ws-directions">${dirs}</div>
     <div class="ws-tbl-wrap">
       <table class="ws-tbl">
         <thead><tr>${headRow}</tr></thead>
