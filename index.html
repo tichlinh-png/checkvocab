@@ -93,8 +93,8 @@ textarea{resize:vertical}
 .ws-underline{display:block;border-bottom:1.5px solid #000;margin-top:18px;min-height:2px}
 .ws-directions{font-size:12px;font-style:italic;color:#444;margin-bottom:10px;font-weight:300;flex-shrink:0}
 .ws-tbl-wrap{flex:1;overflow:hidden;display:flex;flex-direction:column}
-.ws-tbl{width:100%;border-collapse:collapse;font-size:14px;height:100%}
-.ws-tbl th{background:#ececec;border:2px solid #000;padding:10px 14px;text-align:left;font-size:13px;font-weight:700}
+.ws-tbl{width:100%;border-collapse:collapse;font-size:14px;table-layout:fixed}
+.ws-tbl th{background:#ececec;border:2px solid #000;padding:8px 14px;text-align:left;font-size:13px;font-weight:700;color:#000}
 .ws-tbl td{border:1.5px solid #bbb;padding:0}
 .ws-tbl td.num-cell{text-align:center;color:#666;font-size:12px;font-weight:500;width:38px;padding:0 6px;border:1.5px solid #bbb;vertical-align:middle}
 .ws-tbl td.word-cell{font-weight:700;font-size:15px;padding:0 14px;width:42%;border:1.5px solid #bbb;vertical-align:middle}
@@ -554,10 +554,8 @@ function updatePreview() {
   const isWM = wsMode === "wm";
   document.getElementById("prev-dirs").style.display = "none";
 
-  const colA = document.getElementById("pi-col-a").value.trim()
-    || (isWM ? "Vocabulary Word / Từ vựng" : "Nghĩa tiếng Việt");
-  const colB = document.getElementById("pi-col-b").value.trim()
-    || (isWM ? "Meaning / Nghĩa tiếng Việt" : "Từ / Mẫu câu tiếng Anh");
+  const colA = document.getElementById("pi-col-a").value.trim() || "Từ vựng / Câu";
+  const colB = document.getElementById("pi-col-b").value.trim() || "Dịch";
 
   document.getElementById("prev-thead").innerHTML =
     `<th style="width:36px;text-align:center">STT</th><th style="width:42%">${colA}</th><th>${colB}</th>`;
@@ -585,11 +583,12 @@ function buildRenderContent() {
   const n     = displayWords.length;
 
   const rowPct = (100 / n).toFixed(4) + "%";
+  // Calculate explicit pixel height: A4(1123) - padding(68) - heading(78) - inforow(52) - thead(36) - footer(45)
+  const FIXED_PX = 68 + 78 + 52 + 36 + 45;
+  const rowH = Math.max(36, Math.floor((1123 - FIXED_PX) / n));
 
-  const colA = document.getElementById("pi-col-a").value.trim()
-    || (isWM ? "Vocabulary Word / Từ vựng" : "Nghĩa tiếng Việt");
-  const colB = document.getElementById("pi-col-b").value.trim()
-    || (isWM ? "Meaning / Nghĩa tiếng Việt" : "Từ / Mẫu câu tiếng Anh");
+  const colA = document.getElementById("pi-col-a").value.trim() || "Từ vựng / Câu";
+  const colB = document.getElementById("pi-col-b").value.trim() || "Dịch";
 
   const headRow = `<th style="width:38px;text-align:center">STT</th><th style="width:42%">${colA}</th><th>${colB}</th>`;
 
@@ -598,12 +597,12 @@ function buildRenderContent() {
     const meaning = typeof w==="object"?w.meaning:"";
     const bg = i%2===0?"#fff":"#f5f5f5";
     return isWM
-      ? `<tr style="background:${bg};height:${rowPct}">
+      ? `<tr style="background:${bg};height:${rowH}px">
           <td class="num-cell" style="background:${bg}">${i+1}</td>
           <td class="word-cell" style="background:${bg}">${word}</td>
           <td class="blank-cell" style="background:${bg}"></td>
         </tr>`
-      : `<tr style="background:${bg};height:${rowPct}">
+      : `<tr style="background:${bg};height:${rowH}px">
           <td class="num-cell" style="background:${bg}">${i+1}</td>
           <td class="word-cell" style="font-weight:600;font-size:15px;background:${bg}">${meaning||"—"}</td>
           <td class="blank-cell" style="background:${bg}"></td>
